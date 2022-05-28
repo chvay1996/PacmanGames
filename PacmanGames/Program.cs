@@ -7,33 +7,103 @@ namespace Brave_new_world
 {
     class Program
     {
-        static char[,] MapPoint(string mapName, out int playerX, out int mobX, out int mobY, out int playerY, ref int dots)
+        static void Main(string[] args)
+        {
+            Random random = new Random();
+            Console.CursorVisible = false;
+            bool startGame = true;
+            int playerX = 0, playerY = 0, playerDX = 0, playerDY = 0, dots = 0, collect = 0;
+            bool isPlayer = true;
+            int mobX = 0, mobY = 0, mobDX = 0, mobDY = -1;
+            char[,] map = MapPoint(out playerX, out mobX, out mobY, out playerY, ref dots);
+
+            DrowMap(map);
+
+            while (startGame)
+            {
+                Console.SetCursorPosition(playerY, playerX);
+                Console.Write('@');
+
+                Console.SetCursorPosition(0, 22);
+                Console.WriteLine($"Собрано {collect}, Всего {dots}");
+
+                if (Console.KeyAvailable)
+                {
+                    ConsoleKeyInfo key = Console.ReadKey(true);
+                    PlayGo(key, ref playerDX, ref playerDY);
+                }
+                if (map[playerX + playerDX, playerY + playerDY] != '#')
+                {
+                    CollectDots(playerX, playerY, ref collect, map);
+                    Move(map, '@', ref playerX, ref playerY, playerDX, playerDY);
+                }
+                if (map[mobX + mobDX, mobY + mobDY] != '#')
+                {
+                    Move(map, '$', ref mobX, ref mobY, mobDX, mobDY);
+                }
+                else
+                {
+                    PlayGo(random, ref mobDX, ref mobDY);
+                }
+                if (mobX == playerX && mobY == playerY)
+                {
+                    startGame = false;
+                }
+
+                Thread.Sleep(250);
+
+                if (collect == dots || !isPlayer)
+                {
+                    isPlayer = false;
+                }
+            }
+
+            Console.SetCursorPosition(0, 15);
+
+            if (collect == dots)
+            {
+                Console.WriteLine("Вы победили!)");
+            }
+            else if (!isPlayer)
+            {
+                Console.SetCursorPosition(0, 10);
+                Console.WriteLine("Вы проиграли! Вас скушали!");
+            }
+        }
+
+        static char[,] MapPoint(out int playerX, out int mobX, out int mobY, out int playerY, ref int dots)
         {
             playerX = 0; playerY = 0;
             mobX = 0; mobY = 0; ;
-            string[] mapFile = File.ReadAllLines($"Maps/{mapName}.txt");
-            char[,] mapFool = new char[mapFile.Length, mapFile[0].Length];
+            string[] mapFile = {
+            "##########################################",
+            "#                                    $   #",
+            "# ####################### ################",
+            "# #          ####     ### ##########@    #",
+            "#  # ############### ###  ############  ##",
+            "## # ######## ######         ######### ###",
+            "## # #####     ######### ############# ###",
+            "#                                        #",
+            "##########################################"};
+                char[,] mapFool = new char[mapFile.Length, mapFile[0].Length];
 
             for (int i = 0; i < mapFool.GetLength(0); i++)
             {
                 for (int j = 0; j < mapFool.GetLength(1); j++)
                 {
                     mapFool[i, j] = mapFile[i][j];
-
                     if (mapFool[i, j] == '@')
                     {
                         playerX = i;
                         playerY = j;
                         mapFool[i, j] = '.';
                     }
-
                     else if (mapFool[i, j] == '$')
                     {
                         mobX = i;
                         mobY = j;
                         mapFool[i, j] = '.';
                     }
-
                     else if (mapFool[i, j] == ' ')
                     {
                         mapFool[i, j] = '.';
@@ -52,74 +122,6 @@ namespace Brave_new_world
                     Console.Write(map[i, j]);
                 }
                 Console.WriteLine();
-            }
-        }
-        static void Main(string[] args)
-        {
-            Random random = new Random();
-            Console.CursorVisible = false;
-            bool startGame = true;
-            int playerX = 0, playerY = 0, playerDX = 0, playerDY = 0, dots = 0, collect = 0;
-            bool isPlayer = true;
-            int mobX = 0, mobY = 0, mobDX = 0, mobDY = -1;
-
-            char[,] map = MapPoint("Map1", out playerX, out mobX, out mobY, out playerY, ref dots);
-
-            DrowMap(map);
-
-            while (startGame)
-            {
-                Console.SetCursorPosition(playerY, playerX);
-                Console.Write('@');
-
-                Console.SetCursorPosition(0, 22);
-                Console.WriteLine($"Собрано {dots}, Всего {collect}");
-
-                if (Console.KeyAvailable)
-                {
-                    ConsoleKeyInfo key = Console.ReadKey(true);
-                    PlayGo(key, ref playerDX, ref playerDY);
-                }
-
-                if (map[playerX + playerDX, playerY + playerDY] != '#')
-                {
-                    CollectDots(playerX, playerY, ref collect, map);
-                    Move(map, '@', ref playerX, ref playerY, playerDX, playerDY);
-                }
-
-                if (map[mobX + mobDX, mobY + mobDY] != '#')
-                {
-                    Move(map, '$', ref mobX, ref mobY, mobDX, mobDY);
-                }
-
-                else
-                {
-                    PlayGo(random, ref mobDX, ref mobDY);
-                }
-
-                if (mobX == playerX && mobY == playerY)
-                {
-                    startGame = false;
-                }
-
-                Thread.Sleep(250);
-
-                if (collect == dots || !isPlayer)
-                {
-                    isPlayer = false;
-                }
-            }
-
-            Console.SetCursorPosition(0, 23);
-
-            if (collect == dots)
-            {
-                Console.WriteLine("Вы победили!)");
-            }
-
-            else if (!isPlayer)
-            {
-                Console.WriteLine("Вы проиграли! Вас скушали!");
             }
         }
         private static void CollectDots(int playerX, int playerY, ref int collect, char[,] map)
