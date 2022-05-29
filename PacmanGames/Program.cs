@@ -9,19 +9,34 @@ namespace Brave_new_world
     {
         static void Main(string[] args)
         {
+            GameProgress();
+        }
+
+        static void GameProgress()
+        {
             Random random = new Random();
             Console.CursorVisible = false;
             bool startGame = true;
-            int playerX = 0, playerY = 0, playerDX = 0, playerDY = 0, dots = 0, collect = 0;
+            int characterCoordinatesX = 0;
+            int characterCoordinatesY = 0;
+            int CharacterDirectionX = 0;
+            int CharacterDirectionY = 0;
+            int dots = 0;
+            int collect = 0;
+            int coordinatesEnemyX = 0;
+            int coordinatesEnemyY = 0;
+            int directionEnemyX = 0;
+            int directionEnemyY = -1;
+            int positionOutputGameResult = 15;
+            int GameDelay = 250;
             bool isPlayer = true;
-            int mobX = 0, mobY = 0, mobDX = 0, mobDY = -1;
-            char[,] map = MapPoint(out playerX, out mobX, out mobY, out playerY, ref dots);
+            char[,] map = MapPoint(out characterCoordinatesX, out coordinatesEnemyX, out coordinatesEnemyY, out characterCoordinatesY, ref dots);
 
             DrowMap(map);
 
             while (startGame)
             {
-                Console.SetCursorPosition(playerY, playerX);
+                Console.SetCursorPosition(characterCoordinatesY, characterCoordinatesX);
                 Console.Write('@');
 
                 Console.SetCursorPosition(0, 22);
@@ -30,35 +45,39 @@ namespace Brave_new_world
                 if (Console.KeyAvailable)
                 {
                     ConsoleKeyInfo key = Console.ReadKey(true);
-                    PlayGo(key, ref playerDX, ref playerDY);
+                    ArrowControl(key, ref CharacterDirectionX, ref CharacterDirectionY);
                 }
-                if (map[playerX + playerDX, playerY + playerDY] != '#')
+                if (map[characterCoordinatesX + CharacterDirectionX, characterCoordinatesY + CharacterDirectionY] != '#')
                 {
-                    CollectDots(playerX, playerY, ref collect, map);
-                    Move(map, '@', ref playerX, ref playerY, playerDX, playerDY);
+                    CollectDots(characterCoordinatesX, characterCoordinatesY, ref collect, map);
+                    Move(map, '@', ref characterCoordinatesX, ref characterCoordinatesY, CharacterDirectionX, CharacterDirectionY);
                 }
-                if (map[mobX + mobDX, mobY + mobDY] != '#')
+                if (map[coordinatesEnemyX + directionEnemyX, coordinatesEnemyY + directionEnemyY] != '#')
                 {
-                    Move(map, '$', ref mobX, ref mobY, mobDX, mobDY);
+                    Move(map, '$', ref coordinatesEnemyX, ref coordinatesEnemyY, directionEnemyX, directionEnemyY);
                 }
                 else
                 {
-                    PlayGo(random, ref mobDX, ref mobDY);
+                    ArrowControl(random, ref directionEnemyX, ref directionEnemyY);
                 }
-                if (mobX == playerX && mobY == playerY)
+                if (coordinatesEnemyX == characterCoordinatesX && coordinatesEnemyY == characterCoordinatesY)
                 {
                     startGame = false;
                 }
 
-                Thread.Sleep(250);
+                Thread.Sleep(GameDelay);
 
                 if (collect == dots || !isPlayer)
                 {
                     isPlayer = false;
                 }
             }
+            EndGame(ref positionOutputGameResult, ref collect, ref dots, ref isPlayer);
+        }
 
-            Console.SetCursorPosition(0, 15);
+        static void EndGame(ref int positionOutputGameResult, ref int collect, ref int dots, ref bool isPlayer)
+        {
+            Console.SetCursorPosition(0, positionOutputGameResult);
 
             if (collect == dots)
             {
@@ -69,12 +88,15 @@ namespace Brave_new_world
                 Console.SetCursorPosition(0, 10);
                 Console.WriteLine("Вы проиграли! Вас скушали!");
             }
+
         }
 
-        static char[,] MapPoint(out int playerX, out int mobX, out int mobY, out int playerY, ref int dots)
+        static char[,] MapPoint(out int characterCoordinatesX, out int coordinatesEnemyX, out int coordinatesEnemyY, out int characterCoordinatesY, ref int dots)
         {
-            playerX = 0; playerY = 0;
-            mobX = 0; mobY = 0; ;
+            characterCoordinatesX = 0; 
+            characterCoordinatesY = 0;
+            coordinatesEnemyX = 0; 
+            coordinatesEnemyY = 0; ;
             string[] mapFile = {
             "##########################################",
             "#                                    $   #",
@@ -94,14 +116,14 @@ namespace Brave_new_world
                     mapFool[i, j] = mapFile[i][j];
                     if (mapFool[i, j] == '@')
                     {
-                        playerX = i;
-                        playerY = j;
+                        characterCoordinatesX = i;
+                        characterCoordinatesY = j;
                         mapFool[i, j] = '.';
                     }
                     else if (mapFool[i, j] == '$')
                     {
-                        mobX = i;
-                        mobY = j;
+                        coordinatesEnemyX = i;
+                        coordinatesEnemyY = j;
                         mapFool[i, j] = '.';
                     }
                     else if (mapFool[i, j] == ' ')
@@ -113,6 +135,7 @@ namespace Brave_new_world
             }
             return mapFool;
         }
+
         static void DrowMap(char[,] map)
         {
             for (int i = 0; i < map.GetLength(0); i++)
@@ -124,61 +147,66 @@ namespace Brave_new_world
                 Console.WriteLine();
             }
         }
-        private static void CollectDots(int playerX, int playerY, ref int collect, char[,] map)
+
+        private static void CollectDots(int characterCoordinatesX, int characterCoordinatesY, ref int collect, char[,] map)
         {
-            if (map[playerX, playerY] == '.')
+            if (map[characterCoordinatesX, characterCoordinatesY] == '.')
             {
                 collect++;
-                map[playerX, playerY] = ' ';
+                map[characterCoordinatesX, characterCoordinatesY] = ' ';
             }
         }
-        static void Move(char[,] map, char simvol, ref int X, ref int Y, int DX, int DY)
+
+        static void Move(char[,] map, char simvol, ref int coordinatesX, ref int coordinatesY, int directionX, int directionY)
         {
-            Console.SetCursorPosition(Y, X);
-            Console.Write(map[X, Y]);
+            Console.SetCursorPosition(coordinatesY, coordinatesX);
+            Console.Write(map[coordinatesX, coordinatesY]);
 
-            X += DX;
-            Y += DY;
+            coordinatesX += directionX;
+            coordinatesY += directionY;
 
-            Console.SetCursorPosition(Y, X);
+            Console.SetCursorPosition(coordinatesY, coordinatesX);
             Console.Write(simvol);
 
         }
-        static void PlayGo(ConsoleKeyInfo key, ref int DX, ref int DY)
+
+        static void ArrowControl(ConsoleKeyInfo key, ref int directionX, ref int directionY)
         {
             switch (key.Key)
             {
                 case ConsoleKey.LeftArrow:
-                    DX = 0; DY = -1;
+                    directionX = 0; directionY = -1;
                     break;
                 case ConsoleKey.UpArrow:
-                    DX = -1; DY = 0;
+                    directionX = -1; directionY = 0;
                     break;
                 case ConsoleKey.RightArrow:
-                    DX = 0; DY = 1;
+                    directionX = 0; directionY = 1;
                     break;
                 case ConsoleKey.DownArrow:
-                    DX = 1; DY = 0;
+                    directionX = 1; directionY = 0;
                     break;
             }
         }
-        static void PlayGo(Random random, ref int DX, ref int DY)
+
+        static void ArrowControl(Random random, ref int directionX, ref int directionY)
         {
-            int goDir = random.Next(1, 5);
+            byte maxDirectionEnemy = 5;
+            int goDir = random.Next(1, maxDirectionEnemy);
 
             switch (goDir)
             {
                 case 1:
-                    DX = 0; DY = -1;
+                    directionX = 0; directionY = -1;
                     break;
                 case 2:
-                    DX = -1; DY = 0;
+                    directionX = -1; directionY = 0;
                     break;
                 case 3:
-                    DX = 0; DY = 1;
+                    directionX = 0; directionY = 1;
                     break;
                 case 4:
-                    DX = 1; DY = 0;
+                    directionX = 1; directionY = 0;
                     break;
             }
         }
