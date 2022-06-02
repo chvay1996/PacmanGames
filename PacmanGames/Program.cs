@@ -53,6 +53,7 @@ namespace Brave_new_world
                 Move(map, '@', ref characterCoordinatesX, ref characterCoordinatesY, characterDirectionX, characterDirectionY);
             }
         }
+
         static bool EndGame(ref int positionOutputGameResult, ref int collect, ref int dots, ref bool startGame)
         {
             Console.SetCursorPosition(0, positionOutputGameResult);
