@@ -17,14 +17,14 @@ namespace Brave_new_world
             Random random = new Random();
             Console.CursorVisible = false;
             bool startGame = true;
-            int characterCoordinatesX = 0;
-            int characterCoordinatesY = 0;
+            int characterCoordinatesX;
+            int characterCoordinatesY;
             int CharacterDirectionX = 0;
             int CharacterDirectionY = 0;
             int dots = 0;
             int collect = 0;
-            int coordinatesEnemyX = 0;
-            int coordinatesEnemyY = 0;
+            int coordinatesEnemyX;
+            int coordinatesEnemyY;
             int directionEnemyX = 0;
             int directionEnemyY = -1;
             int positionOutputGameResult = 15;
